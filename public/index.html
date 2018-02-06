@@ -46,9 +46,9 @@ the smaller was half the size of the larger, you would put "50" in the input and
   var xAxis = d3.axisBottom(x);
   var yAxis = d3.axisLeft(y);
 
-  var numVis1 = 30;
-  var numVis2 = 30;
-  var numVis3 = 30;
+  var numVis1 = 10;
+  var numVis2 = 10;
+  var numVis3 = 10;
 
   var visType; //current vis type being displayed
   var trialNum = 1; //current trial number during experiment
@@ -64,7 +64,7 @@ the smaller was half the size of the larger, you would put "50" in the input and
       .attr("transform", "translate(" + width/4 + "," + height/2 + ")");
 
   document.getElementById("trialNum").innerHTML = trialNum;
-  document.getElementById("totalTrials").innerHTML = 90;
+  document.getElementById("totalTrials").innerHTML = 30;
   displayBarChart(data);
 
   function checkValid(){
