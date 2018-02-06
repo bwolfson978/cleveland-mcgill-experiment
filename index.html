@@ -2,12 +2,229 @@
 
 
 <style>
+    .arc path {
+        stroke: #fff;
+    }
 </style>
 
 <body>
   <h1> Experiment </h1>
+  <input type="number" id="report_percent">
+  <button type="button" onclick="nextTrial()">Next</button>
+<p>There are two regions marked with a white dot. What percentage is the smaller of the larger? For example, if you thought
+the smaller was half the size of the larger, you would put "50" in the input and click next.</p>
 </body>
 
 <script>
-  console.log(d3); // test if d3 is loaded
+  var margin = {top: 20, right: 20, bottom: 30, left: 40},
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+
+  var x = d3.scaleLinear().range([0, width]);
+  var y = d3.scaleLinear().range([height, 0]);
+  var xAxis = d3.axisBottom(x);
+  var yAxis = d3.axisLeft(y);
+
+  var numVis1 = 30;
+  var numVis2 = 30;
+  var numVis3 = 30;
+
+  var visType; //current vis type being displayed
+  var trialNum = -1; //current trial number during experiment
+  var truePercent = 10; //true percent of current vis
+  var trialData = [];
+  //generate 10 random numbers between 1 and 100, choose 2 to show dots
+  var data = getData();
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + width/4 + "," + height/2 + ")");
+
+  displayBarChart(data);
+
+
+  function nextTrial(){
+      appendTrialData();
+      if(numVis1 == 0 && numVis2 == 0 && numVis3 == 0){
+          //thanks message!
+          downloadCSV();
+      }
+      //clear the svg
+      svg.selectAll("*").remove();
+      var displayed = false;
+      while(!displayed){
+          var next = Math.floor(Math.random() * 3);
+          if(next == 0 && numVis1 > 0){
+              displayBarChart(data);
+              displayed = true;
+          }
+          else if(next == 1 && numVis2 > 0){
+              displayPieChart(data);
+              displayed = true;
+          }
+          else if(next == 2 && numVis3 > 0){
+              displayHorizontalBarChart(data);
+              displayed = true;
+          }
+      }
+
+  }
+
+  function appendTrialData(){
+      var report_percent = document.getElementById("report_percent").value;
+      var row = trialNum.toString() + "," + visType + "," +
+          truePercent.toString() + "," + report_percent.toString();
+      trialData.push(row);
+      console.log(trialData);
+      //maybe easier for json
+  }
+
+  function truePercentCalculation(num1, num2){
+      if(num1 < num2){
+          return (num1 / num2 * 100).toFixed(2);
+      }
+      else{
+          return (num2 / num1 * 100).toFixed(2);
+      }
+  }
+
+  function getData(){
+      var data = [];
+      for(i = 0; i < 10; i++){
+          var num = Math.floor(Math.random() * 100) + 1;
+          data.push(num);
+      }
+      return data;
+  }
+
+  function displayBarChart(data){
+      visType = "Bar";
+      for(i = 0; i < data.length; i++){
+          svg.append("rect")
+              .attr("x", i*11)
+              .attr("width", 10)
+              .attr("y", 100 - data[i])
+              .attr("height", data[i]);
+      }
+      // add the dot to two of the rectangles
+      var points = []
+      for(i = 0; i < 2; i++){
+          var pt = Math.floor(Math.random() * 10);
+          if(points.includes(pt)){
+              i--;
+          }
+          else{
+              points.push(pt);
+          }
+      }
+
+      var circles = svg.selectAll("circle")
+          .data(points)
+          .enter()
+          .append("circle")
+          .attr("fill", "white")
+          .attr("cx", function(d){return d * 11 + 5;})
+          .attr("cy", function(d){return 100 - data[d] + data[d]/2})
+          .attr("r", 2);
+
+      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
+      numVis1--;
+      trialNum++;
+  }
+
+  function displayPieChart(data){
+      visType = "Pie";
+      var arc = d3.arc().outerRadius(100).innerRadius(0);
+      var pointArc = d3.arc().outerRadius(100).innerRadius(0);
+      var pie = d3.pie()
+          .sort(null)
+          .value(function(d) {return d;})
+      var pChart = svg.selectAll(".arc")
+          .data(pie(data)).enter().append("g")
+          .attr("class", "arc");
+      pChart.append("path")
+          .attr("d", arc)
+          .style("fill", "black");
+      // add the dot to two of the rectangles
+      var points = []
+      for(i = 0; i < 2; i++){
+          var pt = Math.floor(Math.random() * 10);
+          if(points.includes(pt)){
+              i--;
+          }
+          else{
+              points.push(pt);
+          }
+      }
+      pChart.append("circle")
+          .attr("transform", function(d){
+              if(points.includes(d.index)){
+                  return "translate(" + pointArc.centroid(d) + ")";
+              }})
+          .attr("fill", function(d){
+              if(points.includes(d.index)){
+                  return "white";
+              }
+          })
+          .attr("r", function(d){
+              if(points.includes(d.index)){
+                  return 2;
+              }
+          });
+      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
+      numVis2--;
+      trialNum++;
+  }
+
+  function displayHorizontalBarChart(data){
+      visType = "HBar";
+      for(i = 0; i < data.length; i++){
+          svg.append("rect")
+              .attr("y", i*11)
+              .attr("width", data[i])
+              .attr("x", 100)
+              .attr("height", 10);
+      }
+      // add the dot to two of the rectangles
+      var points = []
+      for(i = 0; i < 2; i++){
+          var pt = Math.floor(Math.random() * 10);
+          if(points.includes(pt)){
+              i--;
+          }
+          else{
+              points.push(pt);
+          }
+      }
+
+      var circles = svg.selectAll("circle")
+          .data(points)
+          .enter()
+          .append("circle")
+          .attr("fill", "white")
+          .attr("cy", function(d){return d * 11 + 5;})
+          .attr("cx", function(d){return 100 + data[d]/2})
+          .attr("r", 2);
+
+      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
+      numVis3--;
+      trialNum++;
+  }
+
+  function downloadCSV(){
+      var csvContent = "data:text/csv;charset=utf-8,";
+      trialData.forEach(function(row){
+          //var row = rowArray.join(",");
+          csvContent += row + "\r\n";
+      });
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "my_data.csv");
+      document.body.appendChild(link); // Required for FF
+      link.click(); // This will download the data file named "my_data.csv"
+  }
+
 </script>

@@ -87,3 +87,9 @@ GitHub Details
 - Edit this README.md with a link to your gh-pages site: e.g. http://YourUsernameGoesHere.github.io/Experiment/index.html
 - Replace this file (README.md) with your writeup and Design/Technical achievements.
 - To submit, make a [Pull Request](https://help.github.com/articles/using-pull-requests/) on the original repository.
+
+Sources
+---
+https://bl.ocks.org/d3noob/bdf28027e0ce70bd132edc64f1dd7ea4
+https://bl.ocks.org/santi698/f3685ca8a1a7f5be1967f39f367437c0
+https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
