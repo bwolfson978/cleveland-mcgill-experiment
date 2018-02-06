@@ -1,5 +1,20 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 
+<script src="https://www.gstatic.com/firebasejs/4.9.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.9.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.9.1/firebase.js"></script>
+<script>
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyB7OKSD9hY62xGpQufg_SnXbK9YyYt2xlc",
+        authDomain: "cleveland-mcgill.firebaseapp.com",
+        databaseURL: "https://cleveland-mcgill.firebaseio.com",
+        projectId: "cleveland-mcgill",
+        storageBucket: "",
+        messagingSenderId: "1052272588125"
+    };
+    firebase.initializeApp(config);
+</script>
 
 <style>
     .arc path {
@@ -10,12 +25,18 @@
 <body>
   <h1> Experiment </h1>
   <input type="number" id="report_percent">
-  <button type="button" onclick="nextTrial()">Next</button>
-<p>There are two regions marked with a white dot. What percentage is the smaller of the larger? For example, if you thought
-the smaller was half the size of the larger, you would put "50" in the input and click next.gi</p>
+  <button type="button" onclick="checkValid()">Next</button>
+  <p id="msg"></p>
+  <p>There are two regions marked with a white dot. What percentage is the smaller of the larger? For example, if you thought
+the smaller was half the size of the larger, you would put "50" in the input and click next.</p>
+  <p>progress:
+    <a id="trialNum"></a> /
+      <a id="totalTrials"></a>
+  </p>
 </body>
 
 <script>
+
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
       width = 960 - margin.left - margin.right,
       height = 500 - margin.top - margin.bottom;
@@ -30,7 +51,7 @@ the smaller was half the size of the larger, you would put "50" in the input and
   var numVis3 = 30;
 
   var visType; //current vis type being displayed
-  var trialNum = -1; //current trial number during experiment
+  var trialNum = 1; //current trial number during experiment
   var truePercent = 10; //true percent of current vis
   var trialData = [];
   //generate 10 random numbers between 1 and 100, choose 2 to show dots
@@ -42,17 +63,29 @@ the smaller was half the size of the larger, you would put "50" in the input and
       .append("g")
       .attr("transform", "translate(" + width/4 + "," + height/2 + ")");
 
+  document.getElementById("trialNum").innerHTML = trialNum;
+  document.getElementById("totalTrials").innerHTML = 90;
   displayBarChart(data);
 
-
+  function checkValid(){
+      var num = document.getElementById("report_percent").value;
+      if(isNaN(num) || num < 1 || num > 100){
+          document.getElementById("msg").innerHTML = "Invalid Input"
+      }
+      else{
+          nextTrial();
+      }
+  }
   function nextTrial(){
       appendTrialData();
       if(numVis1 == 0 && numVis2 == 0 && numVis3 == 0){
           //thanks message!
-          downloadCSV();
+          saveToFirebase();
       }
       //clear the svg
       svg.selectAll("*").remove();
+      //update progress
+      document.getElementById("trialNum").innerHTML = trialNum;
       var displayed = false;
       while(!displayed){
           var next = Math.floor(Math.random() * 3);
@@ -78,7 +111,7 @@ the smaller was half the size of the larger, you would put "50" in the input and
           truePercent.toString() + "," + report_percent.toString();
       trialData.push(row);
       console.log(trialData);
-      //maybe easier for json
+      document.getElementById("report_percent").value = "";
   }
 
   function truePercentCalculation(num1, num2){
@@ -103,10 +136,10 @@ the smaller was half the size of the larger, you would put "50" in the input and
       visType = "Bar";
       for(i = 0; i < data.length; i++){
           svg.append("rect")
-              .attr("x", i*11)
-              .attr("width", 10)
-              .attr("y", 100 - data[i])
-              .attr("height", data[i]);
+              .attr("x", i*21)
+              .attr("width", 20)
+              .attr("y", 100 - 2*data[i])
+              .attr("height", 2*data[i]);
       }
       // add the dot to two of the rectangles
       var points = []
@@ -125,8 +158,8 @@ the smaller was half the size of the larger, you would put "50" in the input and
           .enter()
           .append("circle")
           .attr("fill", "white")
-          .attr("cx", function(d){return d * 11 + 5;})
-          .attr("cy", function(d){return 100 - data[d] + data[d]/2})
+          .attr("cx", function(d){return d * 21 + 10;})
+          .attr("cy", function(d){return 100 - 2*data[d] + data[d]})
           .attr("r", 2);
 
       truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
@@ -182,10 +215,10 @@ the smaller was half the size of the larger, you would put "50" in the input and
       visType = "HBar";
       for(i = 0; i < data.length; i++){
           svg.append("rect")
-              .attr("y", i*11)
-              .attr("width", data[i])
+              .attr("y", (i*21) - 100)
+              .attr("width", 2*data[i])
               .attr("x", 100)
-              .attr("height", 10);
+              .attr("height", 20);
       }
       // add the dot to two of the rectangles
       var points = []
@@ -204,8 +237,8 @@ the smaller was half the size of the larger, you would put "50" in the input and
           .enter()
           .append("circle")
           .attr("fill", "white")
-          .attr("cy", function(d){return d * 11 + 5;})
-          .attr("cx", function(d){return 100 + data[d]/2})
+          .attr("cy", function(d){return (d * 21 + 10) - 100;})
+          .attr("cx", function(d){return 100 + data[d]})
           .attr("r", 2);
 
       truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
@@ -225,6 +258,22 @@ the smaller was half the size of the larger, you would put "50" in the input and
       link.setAttribute("download", "my_data.csv");
       document.body.appendChild(link); // Required for FF
       link.click(); // This will download the data file named "my_data.csv"
+  }
+
+  function saveToFirebase(){
+      var ref = firebase.database().ref();
+      var rootRef = ref.child('/');
+      trialData.forEach(function(row){
+          var newRef = rootRef.push();
+          var elts = row.split(",");
+          console.log(elts);
+          newRef.set({
+              "trialNum":elts[0],
+              "visType":elts[1],
+              "truePercent":elts[2],
+              "reportPercent":elts[3]
+          });
+      });
   }
 
 </script>

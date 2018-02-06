@@ -93,3 +93,4 @@ Sources
 https://bl.ocks.org/d3noob/bdf28027e0ce70bd132edc64f1dd7ea4
 https://bl.ocks.org/santi698/f3685ca8a1a7f5be1967f39f367437c0
 https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
+https://www.w3schools.com/js/js_validation.asp
