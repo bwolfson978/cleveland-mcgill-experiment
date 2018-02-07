@@ -65,7 +65,13 @@
       <a id="trialNum"></a> /
       <a id="totalTrials"></a>
   </p>
+
 </body>
+
+<script src="./js/bar.js"></script>
+<script src="./js/hbar.js"></script>
+<script src="./js/pie.js"></script>
+<script src="./js/udbar.js"></script>
 
 
 <script>
@@ -170,156 +176,6 @@
           data.push(num);
       }
       return data;
-  }
-
-  function displayBarChart(data){
-      visType = "Bar";
-      for(i = 0; i < data.length; i++){
-          svg.append("rect")
-              .attr("x", i*21 - 80)
-              .attr("width", 20)
-              .attr("y", 100 - 2*data[i])
-              .attr("height", 2*data[i]);
-      }
-      // add the dot to two of the rectangles
-      var points = [];
-      for(i = 0; i < 2; i++){
-          var pt = Math.floor(Math.random() * 10);
-          if(points.includes(pt)){
-              i--;
-          }
-          else{
-              points.push(pt);
-          }
-      }
-
-      var circles = svg.selectAll("circle")
-          .data(points)
-          .enter()
-          .append("circle")
-          .attr("fill", "white")
-          .attr("cx", function(d){return (d * 21 + 10) - 80;})
-          .attr("cy", function(d){return 100 - 2*data[d] + data[d]})
-          .attr("r", 2);
-
-      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
-      numVis1--;
-      trialNum++;
-  }
-
-  function displayPieChart(data){
-      visType = "Pie";
-      var arc = d3.arc().outerRadius(100).innerRadius(0);
-      var pointArc = d3.arc().outerRadius(100).innerRadius(0);
-      var pie = d3.pie()
-          .sort(null)
-          .value(function(d) {return d;});
-      var pChart = svg.selectAll(".arc")
-          .data(pie(data)).enter().append("g")
-          .attr("transform", "translate(" + 40 +","+ 40 +")")
-          .attr("class", "arc");
-      pChart.append("path")
-          .attr("d", arc)
-          .style("fill", "black");
-      // add the dot to two of the rectangles
-      var points = [];
-      for(i = 0; i < 2; i++){
-          var pt = Math.floor(Math.random() * 10);
-          if(points.includes(pt)){
-              i--;
-          }
-          else{
-              points.push(pt);
-          }
-      }
-      pChart.append("circle")
-          .attr("transform", function(d){
-              if(points.includes(d.index)){
-                  return "translate(" + pointArc.centroid(d) + ")";
-              }})
-          .attr("fill", function(d){
-              if(points.includes(d.index)){
-                  return "white";
-              }
-          })
-          .attr("r", function(d){
-              if(points.includes(d.index)){
-                  return 2;
-              }
-          });
-      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
-      numVis2--;
-      trialNum++;
-  }
-
-  function displayHorizontalBarChart(data){
-      visType = "HBar";
-      for(i = 0; i < data.length; i++){
-          svg.append("rect")
-              .attr("y", (i*21) - 120)
-              .attr("width", 2*data[i])
-              .attr("x", -20)
-              .attr("height", 20);
-      }
-      // add the dot to two of the rectangles
-      var points = []
-      for(i = 0; i < 2; i++){
-          var pt = Math.floor(Math.random() * 10);
-          if(points.includes(pt)){
-              i--;
-          }
-          else{
-              points.push(pt);
-          }
-      }
-
-      var circles = svg.selectAll("circle")
-          .data(points)
-          .enter()
-          .append("circle")
-          .attr("fill", "white")
-          .attr("cy", function(d){return (d * 21 + 10) - 120;})
-          .attr("cx", function(d){return -20 + data[d]})
-          .attr("r", 2);
-
-      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
-      numVis3--;
-      trialNum++;
-  }
-
-  function displayUDBarChart(data){
-      visType = "UDBar";
-      for(i = 0; i < data.length; i++){
-          svg.append("rect")
-              .attr("x", i*21 - 80)
-              .attr("width", 20)
-              .attr("y", -40)
-              .attr("height", 2*data[i]);
-      }
-      // add the dot to two of the rectangles
-      var points = [];
-      for(i = 0; i < 2; i++){
-          var pt = Math.floor(Math.random() * 10);
-          if(points.includes(pt)){
-              i--;
-          }
-          else{
-              points.push(pt);
-          }
-      }
-
-      var circles = svg.selectAll("circle")
-          .data(points)
-          .enter()
-          .append("circle")
-          .attr("fill", "white")
-          .attr("cx", function(d){return (d * 21 + 10) - 80;})
-          .attr("cy", function(d){return -40 + data[d]})
-          .attr("r", 2);
-
-      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
-      numVis4--;
-      trialNum++;
   }
 
   function saveToFirebase() {
