@@ -1,6 +1,10 @@
 Assignment 3 - Replicating a Classic Experiment  
 ===
 
+The experiment itself can be seen at either of these two locations:
+https://cleveland-mcgill.firebaseapp.com/
+https://bwolfson978.github.io/03-Experiment/public/index.html
+
 I chose four different types of visualizations to test during this replication of the
 seminal Cleveland Mcgill experiment: vertical bar charts, horizontal bar charts,
 upside down bar charts, and pie charts. Each participant was shown 30 variations of each type
