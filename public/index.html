@@ -20,35 +20,69 @@
     .arc path {
         stroke: #fff;
     }
+
+    .chartArea {
+        text-align: center;
+    }
+
+    .inputArea {
+        text-align: center;
+    }
+
+    .title {
+        text-align: center;
+        font-family: georgia, "Times New Roman", serif;
+        font-size: 32px;
+        font-style: italic;
+        font-weight: 400;
+        color: black;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+        text-transform: capitalize;
+    }
+
+    .description {
+        color: black;
+        font-weight: normal;
+        font-size: 1em;
+        font-family: "ff-tisa-web-pro-1","ff-tisa-web-pro-2", "Goudy Old Style", Baskerville, Constantia, Georgia, serif;
+    }
+
 </style>
 
 <body>
-  <h1> Experiment </h1>
-  <input type="number" id="report_percent">
-  <button type="button" onclick="checkValid()">Next</button>
-  <p id="msg"></p>
-  <p>There are two regions marked with a white dot. What percentage is the smaller of the larger? For example, if you thought
-the smaller was half the size of the larger, you would put "50" in the input and click next.</p>
-  <p>progress:
-    <a id="trialNum"></a> /
+  <h1 class="title"> Experiment </h1>
+  <div class = chartArea>
+      <svg id="visRegion"></svg>
+  </div>
+  <div class="inputArea">
+      <input type="number" id="report_percent">
+      <button class="description" type="button" onclick="checkValid()">Next</button>
+      <p id="msg"></p>
+  </div>
+  <p class="description">There are two regions marked with a white dot. What percentage is the smaller of the larger? For example, if you thought
+      the smaller was half the size of the larger, you would put "50" in the input and click next.</p>
+  <p class="description"><b>Progress:</b>
+      <a id="trialNum"></a> /
       <a id="totalTrials"></a>
   </p>
 </body>
+
 
 <script>
 
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
       width = 960 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
+      height = 350 - margin.top - margin.bottom;
 
   var x = d3.scaleLinear().range([0, width]);
   var y = d3.scaleLinear().range([height, 0]);
   var xAxis = d3.axisBottom(x);
   var yAxis = d3.axisLeft(y);
 
-  var numVis1 = 10;
-  var numVis2 = 10;
-  var numVis3 = 10;
+  var numVis1 = 30;
+  var numVis2 = 30;
+  var numVis3 = 30;
+  var numVis4 = 30;
 
   var visType; //current vis type being displayed
   var trialNum = 1; //current trial number during experiment
@@ -57,52 +91,58 @@ the smaller was half the size of the larger, you would put "50" in the input and
   //generate 10 random numbers between 1 and 100, choose 2 to show dots
   var data = getData();
 
-  var svg = d3.select("body").append("svg")
+  var svg = d3.select("#visRegion")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
-      .attr("transform", "translate(" + width/4 + "," + height/2 + ")");
+      .attr("transform", "translate(" + width/2 + "," + height/2 + ")");
 
   document.getElementById("trialNum").innerHTML = trialNum;
-  document.getElementById("totalTrials").innerHTML = 30;
+  document.getElementById("totalTrials").innerHTML = 120;
   displayBarChart(data);
 
   function checkValid(){
       var num = document.getElementById("report_percent").value;
       if(isNaN(num) || num < 1 || num > 100){
-          document.getElementById("msg").innerHTML = "Invalid Input"
+          document.getElementById("msg").innerHTML = "Invalid Input";
       }
       else{
+          document.getElementById("msg").innerHTML = "";
           nextTrial();
       }
   }
   function nextTrial(){
       appendTrialData();
-      if(numVis1 == 0 && numVis2 == 0 && numVis3 == 0){
-          //thanks message!
+      if(numVis1 == 0 && numVis2 == 0 && numVis3 == 0 && numVis4 == 0){
           saveToFirebase();
+          alert("All Done! Thank You!")
       }
-      //clear the svg
-      svg.selectAll("*").remove();
-      //update progress
-      document.getElementById("trialNum").innerHTML = trialNum;
-      var displayed = false;
-      while(!displayed){
-          var next = Math.floor(Math.random() * 3);
-          if(next == 0 && numVis1 > 0){
-              displayBarChart(data);
-              displayed = true;
-          }
-          else if(next == 1 && numVis2 > 0){
-              displayPieChart(data);
-              displayed = true;
-          }
-          else if(next == 2 && numVis3 > 0){
-              displayHorizontalBarChart(data);
-              displayed = true;
+      else{
+          //clear the svg
+          svg.selectAll("*").remove();
+          //update progress
+          document.getElementById("trialNum").innerHTML = trialNum;
+          var displayed = false;
+          while(!displayed){
+              var next = Math.floor(Math.random() * 4);
+              if(next == 0 && numVis1 > 0){
+                  displayBarChart(data);
+                  displayed = true;
+              }
+              else if(next == 1 && numVis2 > 0){
+                  displayPieChart(data);
+                  displayed = true;
+              }
+              else if(next == 2 && numVis3 > 0){
+                  displayHorizontalBarChart(data);
+                  displayed = true;
+              }
+              else if(next == 3 && numVis4 > 0){
+                  displayUDBarChart(data);
+                  displayed = true;
+              }
           }
       }
-
   }
 
   function appendTrialData(){
@@ -136,13 +176,13 @@ the smaller was half the size of the larger, you would put "50" in the input and
       visType = "Bar";
       for(i = 0; i < data.length; i++){
           svg.append("rect")
-              .attr("x", i*21)
+              .attr("x", i*21 - 80)
               .attr("width", 20)
               .attr("y", 100 - 2*data[i])
               .attr("height", 2*data[i]);
       }
       // add the dot to two of the rectangles
-      var points = []
+      var points = [];
       for(i = 0; i < 2; i++){
           var pt = Math.floor(Math.random() * 10);
           if(points.includes(pt)){
@@ -158,7 +198,7 @@ the smaller was half the size of the larger, you would put "50" in the input and
           .enter()
           .append("circle")
           .attr("fill", "white")
-          .attr("cx", function(d){return d * 21 + 10;})
+          .attr("cx", function(d){return (d * 21 + 10) - 80;})
           .attr("cy", function(d){return 100 - 2*data[d] + data[d]})
           .attr("r", 2);
 
@@ -173,15 +213,16 @@ the smaller was half the size of the larger, you would put "50" in the input and
       var pointArc = d3.arc().outerRadius(100).innerRadius(0);
       var pie = d3.pie()
           .sort(null)
-          .value(function(d) {return d;})
+          .value(function(d) {return d;});
       var pChart = svg.selectAll(".arc")
           .data(pie(data)).enter().append("g")
+          .attr("transform", "translate(" + 40 +","+ 40 +")")
           .attr("class", "arc");
       pChart.append("path")
           .attr("d", arc)
           .style("fill", "black");
       // add the dot to two of the rectangles
-      var points = []
+      var points = [];
       for(i = 0; i < 2; i++){
           var pt = Math.floor(Math.random() * 10);
           if(points.includes(pt)){
@@ -215,9 +256,9 @@ the smaller was half the size of the larger, you would put "50" in the input and
       visType = "HBar";
       for(i = 0; i < data.length; i++){
           svg.append("rect")
-              .attr("y", (i*21) - 100)
+              .attr("y", (i*21) - 120)
               .attr("width", 2*data[i])
-              .attr("x", 100)
+              .attr("x", -20)
               .attr("height", 20);
       }
       // add the dot to two of the rectangles
@@ -237,8 +278,8 @@ the smaller was half the size of the larger, you would put "50" in the input and
           .enter()
           .append("circle")
           .attr("fill", "white")
-          .attr("cy", function(d){return (d * 21 + 10) - 100;})
-          .attr("cx", function(d){return 100 + data[d]})
+          .attr("cy", function(d){return (d * 21 + 10) - 120;})
+          .attr("cx", function(d){return -20 + data[d]})
           .attr("r", 2);
 
       truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
@@ -246,32 +287,53 @@ the smaller was half the size of the larger, you would put "50" in the input and
       trialNum++;
   }
 
-  function downloadCSV(){
-      var csvContent = "data:text/csv;charset=utf-8,";
-      trialData.forEach(function(row){
-          //var row = rowArray.join(",");
-          csvContent += row + "\r\n";
-      });
-      var encodedUri = encodeURI(csvContent);
-      var link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "my_data.csv");
-      document.body.appendChild(link); // Required for FF
-      link.click(); // This will download the data file named "my_data.csv"
+  function displayUDBarChart(data){
+      visType = "UDBar";
+      for(i = 0; i < data.length; i++){
+          svg.append("rect")
+              .attr("x", i*21 - 80)
+              .attr("width", 20)
+              .attr("y", -40)
+              .attr("height", 2*data[i]);
+      }
+      // add the dot to two of the rectangles
+      var points = [];
+      for(i = 0; i < 2; i++){
+          var pt = Math.floor(Math.random() * 10);
+          if(points.includes(pt)){
+              i--;
+          }
+          else{
+              points.push(pt);
+          }
+      }
+
+      var circles = svg.selectAll("circle")
+          .data(points)
+          .enter()
+          .append("circle")
+          .attr("fill", "white")
+          .attr("cx", function(d){return (d * 21 + 10) - 80;})
+          .attr("cy", function(d){return -40 + data[d]})
+          .attr("r", 2);
+
+      truePercent = truePercentCalculation(data[points[0]], data[points[1]]);
+      numVis4--;
+      trialNum++;
   }
 
-  function saveToFirebase(){
+  function saveToFirebase() {
       var ref = firebase.database().ref();
       var rootRef = ref.child('/');
-      trialData.forEach(function(row){
+      trialData.forEach(function (row) {
           var newRef = rootRef.push();
           var elts = row.split(",");
           console.log(elts);
           newRef.set({
-              "trialNum":elts[0],
-              "visType":elts[1],
-              "truePercent":elts[2],
-              "reportPercent":elts[3]
+              "trialNum": elts[0],
+              "visType": elts[1],
+              "truePercent": elts[2],
+              "reportPercent": elts[3]
           });
       });
   }
